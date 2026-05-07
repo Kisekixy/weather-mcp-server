@@ -72,18 +72,31 @@ weather_server.add_tool(list_supported_cities)
 weather_server.add_tool(get_server_info)
 
 
+# if __name__ == "__main__":
+#     # Smithery requires HTTP transport on PORT environment variable
+#     port = int(os.getenv("PORT", 8081))
+#     host = os.getenv("HOST", "0.0.0.0")
+#
+#     print(f"🌤️  Starting Weather MCP Server...")
+#     print(f"📡 Transport: HTTP")
+#     print(f"🌐 Host: {host}")
+#     print(f"🔌 Port: {port}")
+#     print(f"🔗 Endpoint: http://{host}:{port}/mcp")
+#     print(f"✨ Ready to serve weather data!")
+#
+#     # Run with HTTP transport (required by Smithery)
+#     weather_server.run(transport="http", host=host, port=port)
 if __name__ == "__main__":
-    # Smithery requires HTTP transport on PORT environment variable
-    port = int(os.getenv("PORT", 8081))
-    host = os.getenv("HOST", "0.0.0.0")
+    import sys
 
-    print(f"🌤️  Starting Weather MCP Server...")
-    print(f"📡 Transport: HTTP")
-    print(f"🌐 Host: {host}")
-    print(f"🔌 Port: {port}")
-    print(f"🔗 Endpoint: http://{host}:{port}/mcp")
-    print(f"✨ Ready to serve weather data!")
-
-    # Run with HTTP transport (required by Smithery)
-    weather_server.run(transport="http", host=host, port=port)
-
+    # 根据 Render 特有的 PORT 环境变量判断运行模式
+    if os.getenv("PORT"):
+        port = int(os.getenv("PORT"))
+        host = os.getenv("HOST", "0.0.0.0")
+        # 云端 HTTP(SSE) 模式：日志重定向至 stderr 防止协议污染
+        print(f"Starting HTTP Server on {host}:{port}", file=sys.stderr)
+        weather_server.run(transport="http", host=host, port=port)
+    else:
+        # 本地 Smithery CLI 模式：强制使用 Stdio
+        # 严禁向 stdout 打印任何非 JSON 数据
+        weather_server.run(transport="stdio")
